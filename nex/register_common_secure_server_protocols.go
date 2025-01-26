@@ -1,27 +1,51 @@
 package nex
 
 import (
-	matchmake_extension "github.com/PretendoNetwork/nex-protocols-common-go/matchmake-extension"
-	matchmaking "github.com/PretendoNetwork/nex-protocols-common-go/matchmaking"
-	matchmaking_ext "github.com/PretendoNetwork/nex-protocols-common-go/matchmaking-ext"
-	nat_traversal "github.com/PretendoNetwork/nex-protocols-common-go/nat-traversal"
-	secureconnection "github.com/PretendoNetwork/nex-protocols-common-go/secure-connection"
-
-	nex_secure_conenction "github.com/PretendoNetwork/steel-diver-sub-wars/nex/secure_conenction"
+	"github.com/PretendoNetwork/nex-go/v2/types"
 	"github.com/PretendoNetwork/steel-diver-sub-wars/globals"
+
+	commonmatchmaking "github.com/PretendoNetwork/nex-protocols-common-go/v2/match-making"
+	commonmatchmakingext "github.com/PretendoNetwork/nex-protocols-common-go/v2/match-making-ext"
+	commonnattraversal "github.com/PretendoNetwork/nex-protocols-common-go/v2/nat-traversal"
+	commonsecure "github.com/PretendoNetwork/nex-protocols-common-go/v2/secure-connection"
+	matchmaking "github.com/PretendoNetwork/nex-protocols-go/v2/match-making"
+	matchmakingext "github.com/PretendoNetwork/nex-protocols-go/v2/match-making-ext"
+	matchmakeextension "github.com/PretendoNetwork/nex-protocols-go/v2/matchmake-extension"
+	nattraversal "github.com/PretendoNetwork/nex-protocols-go/v2/nat-traversal"
+	secure "github.com/PretendoNetwork/nex-protocols-go/v2/secure-connection"
 )
 
+func CreateReportDBRecord(_ *types.PID, _ *types.PrimitiveU32, _ *types.QBuffer) error {
+	return nil
+}
+
+// probably not required but im referencing minecraft so might as well include this
+// func cleanupSearchMatchmakeSessionHandler(matchmakeSession *matchmakingtypes.MatchmakeSession) {
+// 	//_ = matchmakeSession.Attributes.SetIndex(2, types.NewPrimitiveU32(0))
+// 	matchmakeSession.MatchmakeParam = matchmakingtypes.NewMatchmakeParam()
+// 	matchmakeSession.ApplicationBuffer = types.NewBuffer(make([]byte, 0))
+// 	globals.Logger.Info(matchmakeSession.String())
+// }
+
 func registerCommonSecureServerProtocols() {
-	commonSecureConnectionProtocol := secureconnection.NewCommonSecureConnectionProtocol(globals.SecureServer)
+	secureProtocol := secure.NewProtocol()
+	globals.SecureEndpoint.RegisterServiceProtocol(secureProtocol)
+	commonSecureProtocol := commonsecure.NewCommonProtocol(secureProtocol)
 
-	commonSecureConnectionProtocol.CreateReportDBRecord(nex_secure_conenction.CreateReportDBRecord)
+	commonSecureProtocol.CreateReportDBRecord = CreateReportDBRecord
 
-	matchmaking.NewCommonMatchMakingProtocol(globals.SecureServer)
-	matchmaking_ext.NewCommonMatchMakingExtProtocol(globals.SecureServer)
+	natTraversalProtocol := nattraversal.NewProtocol()
+	globals.SecureEndpoint.RegisterServiceProtocol(natTraversalProtocol)
+	commonnattraversal.NewCommonProtocol(natTraversalProtocol)
 
-	commonMatchmakeExtensionProtocol := matchmake_extension.NewCommonMatchmakeExtensionProtocol(globals.SecureServer)
+	matchMakingProtocol := matchmaking.NewProtocol()
+	globals.SecureEndpoint.RegisterServiceProtocol(matchMakingProtocol)
+	commonmatchmaking.NewCommonProtocol(matchMakingProtocol)
 
-	commonMatchmakeExtensionProtocol.GetUserFriendPIDs(globals.GetUserFriendPIDs)
-
-	nat_traversal.NewCommonNATTraversalProtocol(globals.SecureServer)
+	matchMakingExtProtocol := matchmakingext.NewProtocol()
+	globals.SecureEndpoint.RegisterServiceProtocol(matchMakingExtProtocol)
+	commonmatchmakingext.NewCommonProtocol(matchMakingExtProtocol)
+	matchmakeExtensionProtocol := matchmakeextension.NewProtocol()
+	globals.SecureEndpoint.RegisterServiceProtocol(matchmakeExtensionProtocol)
+	//commonMatchmakeExtensionProtocol := commonmatchmakeextension.NewCommonProtocol(matchmakeExtensionProtocol)
 }
