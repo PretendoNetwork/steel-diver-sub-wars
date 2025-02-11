@@ -42,7 +42,7 @@ func init() {
 	friendsGRPCAPIKey := os.Getenv("PN_SDSB_FRIENDS_GRPC_API_KEY")
 
 	if strings.TrimSpace(postgresURI) == "" {
-		globals.Logger.Error("PN_LM2_POSTGRES_URI environment variable not set")
+		globals.Logger.Error("PN_SDSB_POSTGRES_URI environment variable not set")
 		os.Exit(0)
 	}
 
