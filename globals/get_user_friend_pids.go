@@ -4,7 +4,7 @@ import (
 	"context"
 
 	pb_friends "github.com/PretendoNetwork/grpc-go/friends"
-	"github.com/PretendoNetwork/nex-protocols-go/globals"
+	"github.com/PretendoNetwork/nex-protocols-go/v2/globals"
 	"google.golang.org/grpc/metadata"
 )
 

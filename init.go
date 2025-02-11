@@ -1,6 +1,7 @@
 package main
 
 import (
+	"crypto/rand"
 	"fmt"
 	"os"
 	"strconv"
@@ -8,8 +9,11 @@ import (
 
 	pb_account "github.com/PretendoNetwork/grpc-go/account"
 	pb_friends "github.com/PretendoNetwork/grpc-go/friends"
-	"github.com/PretendoNetwork/steel-diver-sub-wars/globals"
+	"github.com/PretendoNetwork/nex-go/v2"
+	"github.com/PretendoNetwork/nex-go/v2/types"
 	"github.com/PretendoNetwork/plogger-go"
+	"github.com/PretendoNetwork/steel-diver-sub-wars/database"
+	"github.com/PretendoNetwork/steel-diver-sub-wars/globals"
 	"github.com/joho/godotenv"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -26,7 +30,7 @@ func init() {
 		globals.Logger.Warning("Error loading .env file")
 	}
 
-	kerberosPassword := os.Getenv("PN_SDSB_KERBEROS_PASSWORD")
+	postgresURI := os.Getenv("PN_SDSB_POSTGRES_URI")
 	authenticationServerPort := os.Getenv("PN_SDSB_AUTHENTICATION_SERVER_PORT")
 	secureServerHost := os.Getenv("PN_SDSB_SECURE_SERVER_HOST")
 	secureServerPort := os.Getenv("PN_SDSB_SECURE_SERVER_PORT")
@@ -37,11 +41,22 @@ func init() {
 	friendsGRPCPort := os.Getenv("PN_SDSB_FRIENDS_GRPC_PORT")
 	friendsGRPCAPIKey := os.Getenv("PN_SDSB_FRIENDS_GRPC_API_KEY")
 
-	if strings.TrimSpace(kerberosPassword) == "" {
-		globals.Logger.Warningf("PN_SDSB_KERBEROS_PASSWORD environment variable not set. Using default password: %q", globals.KerberosPassword)
-	} else {
-		globals.KerberosPassword = kerberosPassword
+	if strings.TrimSpace(postgresURI) == "" {
+		globals.Logger.Error("PN_LM2_POSTGRES_URI environment variable not set")
+		os.Exit(0)
 	}
+
+	kerberosPassword := make([]byte, 0x10)
+	_, err = rand.Read(kerberosPassword)
+	if err != nil {
+		globals.Logger.Error("Error generating Kerberos password")
+		os.Exit(0)
+	}
+
+	globals.KerberosPassword = string(kerberosPassword)
+
+	globals.AuthenticationServerAccount = nex.NewAccount(types.NewPID(1), "Quazal Authentication", globals.KerberosPassword)
+	globals.SecureServerAccount = nex.NewAccount(types.NewPID(2), "Quazal Rendez-Vous", globals.KerberosPassword)
 
 	if strings.TrimSpace(authenticationServerPort) == "" {
 		globals.Logger.Error("PN_SDSB_AUTHENTICATION_SERVER_PORT environment variable not set")
@@ -139,4 +154,6 @@ func init() {
 	globals.GRPCFriendsCommonMetadata = metadata.Pairs(
 		"X-API-Key", friendsGRPCAPIKey,
 	)
+
+	database.ConnectPostgres()
 }
