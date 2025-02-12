@@ -1,5 +1,7 @@
 package nex_secure_conenction
 
-func CreateReportDBRecord(pid uint32, reportID uint32, reportData []byte) error {
+import "github.com/PretendoNetwork/nex-go/v2/types"
+
+func CreateReportDBRecord(pid types.PID, reportID types.UInt32, reportData types.QBuffer) error {
 	return nil
 }
